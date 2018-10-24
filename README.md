@@ -55,7 +55,7 @@ let pageView4: UIView = {
 ```
 
 ##### Create MenuPage Instances Via It's Model
-You don't have to set menuView parameter. It's defalt value is a label view
+You don't have to set menuView parameter. It's default value is a label view
 ```sh
 let aaa = MenuPage(title: "AAA", pageView: pageView)
 let bbb = MenuPage(title: "BBB", pageView: pageView2)
