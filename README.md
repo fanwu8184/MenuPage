@@ -8,7 +8,7 @@ Menu Page is an easy to use and flexible Menu View for iOS development. What you
 - Easy To Use
 
 ### Installation
-Just need to download the MenuPage and SupportFiles files into your project.
+Just need to download the MenuPage and SupportFiles folders into your project.
 
 ### How to use
 ##### Create Your Menu Views
