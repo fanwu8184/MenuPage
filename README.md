@@ -116,25 +116,34 @@ See the example code below
 }
 ```
 ##### The Other Settings
-Change the menu bar height, default is 50
+**Change the menu bar height, default is 50**
 ```sh
 menuPage.menuBarHeight = 100
 ```
-Change the menu bar background color, default is UIcolor.clear
+**Change the menu bar background color, default is UIcolor.clear**
 ```sh
 menuPage.menuBarBackgroundColor = .orange
 ```
-Change the horizontal menu bar color, default is UIcolor.lightGray
+**Change the horizontal menu bar color, default is UIcolor.lightGray**
 ```sh
 menuPage.horizontalMenuBarColor = .blue
 ```
-Change selected menu color, default is UIcolor.red
+**Change selected menu color, default is UIcolor.red**
 ```sh
 menuPage.selectedMenuColor = .black
 ```
-Change not selected menu color, default is UIcolor.blue
+**Change not selected menu color, default is UIcolor.blue**
 ```sh
 menuPage.notSelectedMenuColor = .yellow
+```
+**Set up a closure for currentIndexDidChange so that you can track the menu index change**
+```sh
+menuPage.currentIndexDidChange = { index in print(menuPage.menuPages[index].title) }
+```
+Tip: set this up before you set menuPage.menuPages will let you be able to track the initial value change
+**Disable pages view bounce**
+```sh
+menuPage.setPagesBounce(false)
 ```
 
 License
