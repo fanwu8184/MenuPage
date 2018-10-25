@@ -21,6 +21,15 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         }
     }
     
+    var currentIndexDidChange: ((Int)->())?
+    private var currentIndex: Int! {
+        didSet {
+            if oldValue != currentIndex {
+                currentIndexDidChange?(currentIndex)
+            }
+        }
+    }
+    
      private lazy var menuBarView: MenuBarView = {
         let mb = MenuBarView()
         mb.menuPageView = self
@@ -74,9 +83,10 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     private var menuBarHeightConstraint: NSLayoutConstraint?
     private var pageCollectionViewHeightAnchorConstraint: NSLayoutConstraint?
     
-    convenience init(_ menuPages: [MenuPage]) {
+    convenience init(menuPages: [MenuPage], currentIndexDidChange: ((Int)->())? = nil) {
         self.init(frame: .zero)
         self.menuPages = menuPages
+        self.currentIndexDidChange = currentIndexDidChange
         populateMenuBar()
     }
     
@@ -125,6 +135,7 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     
     internal func scrollToMenuIndex(_ indexPath: IndexPath) {
         if indexPath.row >= 0 && indexPath.row < menuPages.count {
+            currentIndex = indexPath.row
             pageCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
         }
     }
@@ -137,11 +148,15 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     }
 
     internal func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        let index = Int(targetContentOffset.pointee.x / frame.width)
-        menuBarView.selectMenuItemAt(index)
+        currentIndex = Int(targetContentOffset.pointee.x / frame.width)
+        menuBarView.selectMenuItemAt(currentIndex)
     }
     
     // MARK: collectionView
+    func setPagesBounce(_ bounce: Bool) {
+        pageCollectionView.bounces = bounce
+    }
+    
     internal func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return menuPages.count
     }
