@@ -139,9 +139,8 @@ menuPage.notSelectedMenuColor = .yellow
 **Set up a closure for currentIndexDidChange so that you can track the menu index change**
 ```sh
 menuPage.currentIndexDidChange = { index in print(menuPage.menuPages[index].title) }
-```
 Tip: set this up before you set menuPage.menuPages will let you be able to track the initial value change
-
+```
 **Disable pages view bounce**
 ```sh
 menuPage.setPagesBounce(false)
