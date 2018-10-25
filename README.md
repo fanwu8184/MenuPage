@@ -87,8 +87,9 @@ override func viewDidLoad() {
 And done, That is it!
 
 ### Features
-##### Update Your MenuPageView After Setup
+#### Update Your MenuPageView After Setup
 ![demo2](https://github.com/fanwu8184/MenuPage/blob/master/demo2.gif)
+
 See the example code below
 ```sh
 @objc func change(_ sender: UIBarButtonItem) {
@@ -115,7 +116,7 @@ See the example code below
         menuPage.menuPages = [eee, fff]
 }
 ```
-##### The Other Settings
+#### The Other Settings
 **Change the menu bar height, default is 50**
 ```sh
 menuPage.menuBarHeight = 100
