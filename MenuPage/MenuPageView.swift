@@ -40,7 +40,7 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     var menuBarHeight: CGFloat = 50 {
         didSet {
             menuBarHeightConstraint?.constant = menuBarHeight
-            updatePosition()
+            updatePosition(true)
         }
     }
     
@@ -69,13 +69,13 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     
     var isMenuBarAtTop = true {
         didSet {
-            updatePosition()
+            updatePosition(true)
         }
     }
     
     override var bounds: CGRect {
         didSet {
-            updatePosition()
+            updatePosition(false)  //animation at the begining will cause errors
         }
     }
     
@@ -149,7 +149,7 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         pageCollectionView.layoutIfNeeded()
     }
     
-    private func updatePosition() {
+    private func updatePosition(_ animation: Bool) {
         if isMenuBarAtTop {
             menuBarTopConstraint?.constant = 0
             pageCollectionViewBottomConstraint?.constant = 0
@@ -158,6 +158,12 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
             pageCollectionViewBottomConstraint?.constant = -menuBarHeight
         }
         
+        if animation {
+            animate()
+        }
+    }
+    
+    private func animate() {
         UIView.animate(withDuration: 0.75, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
             self.layoutIfNeeded()
         }, completion: nil)
