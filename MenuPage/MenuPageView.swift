@@ -134,7 +134,9 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     override func layoutSubviews() {
         super.layoutSubviews()
         updatePageCollectionViewHeight()
-        scrollToMenuIndex(IndexPath(item: currentIndex, section: 0))  //fix rotation bug
+        if currentIndex != nil {
+            scrollToMenuIndex(IndexPath(item: currentIndex, section: 0))  //fix rotation bug
+        }
     }
     
     private func updatePageCollectionViewHeight() {
