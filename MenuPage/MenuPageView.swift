@@ -93,11 +93,10 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         return cv
     }()
     
+    private var menuBarTopConstraint: NSLayoutConstraint?
     private var menuBarHeightConstraint: NSLayoutConstraint?
+    private var pageCollectionViewBottomConstraint: NSLayoutConstraint?
     private var pageCollectionViewHeightConstraint: NSLayoutConstraint?
-    
-    var menuBarTopConstraint: NSLayoutConstraint?
-    var pageCollectionViewBottomConstraint: NSLayoutConstraint?
     
     convenience init(menuPages: [MenuPage], currentIndexDidChange: ((Int)->())? = nil) {
         self.init(frame: .zero)
