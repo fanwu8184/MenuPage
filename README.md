@@ -116,6 +116,17 @@ See the example code below
         menuPage.menuPages = [eee, fff]
 }
 ```
+
+#### Set the Menu Bar Position
+![demo3](https://github.com/fanwu8184/MenuPage/blob/master/demo3.gif)
+
+See the example code below
+```sh
+func changeMenuBarPosition() {
+    menuPage.isMenuBarAtTop = !menuPage.isMenuBarAtTop
+}
+```
+
 #### The Other Settings
 **Change the menu bar height, default is 50**
 ```sh
