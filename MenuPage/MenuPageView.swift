@@ -40,6 +40,7 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     var menuBarHeight: CGFloat = 50 {
         didSet {
             menuBarHeightConstraint?.constant = menuBarHeight
+            updatePosition()
         }
     }
     
@@ -66,6 +67,18 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         }
     }
     
+    var isMenuBarAtTop = true {
+        didSet {
+            updatePosition()
+        }
+    }
+    
+    override var bounds: CGRect {
+        didSet {
+            updatePosition()
+        }
+    }
+    
     private lazy var pageCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -81,7 +94,10 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     }()
     
     private var menuBarHeightConstraint: NSLayoutConstraint?
-    private var pageCollectionViewHeightAnchorConstraint: NSLayoutConstraint?
+    private var pageCollectionViewHeightConstraint: NSLayoutConstraint?
+    
+    var menuBarTopConstraint: NSLayoutConstraint?
+    var pageCollectionViewBottomConstraint: NSLayoutConstraint?
     
     convenience init(menuPages: [MenuPage], currentIndexDidChange: ((Int)->())? = nil) {
         self.init(frame: .zero)
@@ -90,50 +106,69 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         populateMenuBar()
     }
     
-    internal override func setupViews() {
+    override func setupViews() {
         super.setupViews()
-        setupMenuBarView()
         setupPageCollectionView()
+        setupMenuBarView()
     }
     
     private func setupMenuBarView(){
         addSubview(menuBarView)
-        menuBarView.topAnchor.constraint(equalTo: topAnchor, constant: 0).isActive = true
         menuBarView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0).isActive = true
         menuBarView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0).isActive = true
+        menuBarTopConstraint = menuBarView.topAnchor.constraint(equalTo: topAnchor, constant: 0)
+        menuBarTopConstraint?.isActive = true
         menuBarHeightConstraint = menuBarView.heightAnchor.constraint(equalToConstant: menuBarHeight)
         menuBarHeightConstraint?.isActive = true
     }
     
     private func setupPageCollectionView() {
         addSubview(pageCollectionView)
-        pageCollectionView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
         pageCollectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0).isActive = true
         pageCollectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0).isActive = true
-        pageCollectionViewHeightAnchorConstraint = pageCollectionView.heightAnchor.constraint(equalToConstant: 0)
-        pageCollectionViewHeightAnchorConstraint?.isActive = true
+        pageCollectionViewBottomConstraint = pageCollectionView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0)
+        pageCollectionViewBottomConstraint?.isActive = true
+        pageCollectionViewHeightConstraint = pageCollectionView.heightAnchor.constraint(equalToConstant: 0)
+        pageCollectionViewHeightConstraint?.isActive = true
     }
     
-    internal override func layoutSubviews() {
+    override func layoutSubviews() {
         super.layoutSubviews()
         updatePageCollectionViewHeight()
+        scrollToMenuIndex(IndexPath(item: currentIndex, section: 0))  //fix rotation bug
     }
     
     private func updatePageCollectionViewHeight() {
         if menuBarHeight > bounds.height {
             menuBarHeight = bounds.height
-            pageCollectionViewHeightAnchorConstraint?.constant = 0
+            pageCollectionViewHeightConstraint?.constant = 0
         } else {
-            pageCollectionViewHeightAnchorConstraint?.constant = bounds.height - menuBarHeight
+            pageCollectionViewHeightConstraint?.constant = bounds.height - menuBarHeight
         }
-        pageCollectionView.collectionViewLayout.invalidateLayout()  //inorder to update cell's size
+        //inorder to update cell's size
+        pageCollectionView.collectionViewLayout.invalidateLayout()
+        pageCollectionView.layoutIfNeeded()
+    }
+    
+    private func updatePosition() {
+        if isMenuBarAtTop {
+            menuBarTopConstraint?.constant = 0
+            pageCollectionViewBottomConstraint?.constant = 0
+        } else {
+            menuBarTopConstraint?.constant = frame.height - menuBarHeight
+            pageCollectionViewBottomConstraint?.constant = -menuBarHeight
+        }
+        
+        UIView.animate(withDuration: 0.75, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
+            self.layoutIfNeeded()
+        }, completion: nil)
     }
     
     private func populateMenuBar() {
         menuBarView.menuItems = menuPages.map({ $0.menuView })
     }
     
-    internal func scrollToMenuIndex(_ indexPath: IndexPath) {
+    func scrollToMenuIndex(_ indexPath: IndexPath) {
         if indexPath.row >= 0 && indexPath.row < menuPages.count {
             currentIndex = indexPath.row
             pageCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
@@ -141,13 +176,13 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     }
 
     // MARK: scrollView
-    internal func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if menuPages.count > 0 {
             menuBarView.setHorizontalBarLeadingAnchorConstraint(scrollView.contentOffset.x / CGFloat(menuPages.count))
         }
     }
 
-    internal func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         currentIndex = Int(targetContentOffset.pointee.x / frame.width)
         menuBarView.selectMenuItemAt(currentIndex)
     }
@@ -157,20 +192,20 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         pageCollectionView.bounces = bounce
     }
     
-    internal func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return menuPages.count
     }
     
-    internal func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath)
         return cell
     }
     
-    internal func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: collectionView.frame.width, height: collectionView.frame.height)
     }
     
-    internal func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if let pageCell = cell as? PageCellView {
             pageCell.page = menuPages[indexPath.row].pageView
         }
