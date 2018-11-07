@@ -127,6 +127,14 @@ func changeMenuBarPosition() {
 }
 ```
 
+#### Set the Max Menu Items You Want To Show In The Screen
+![demo4](https://github.com/fanwu8184/MenuPage/blob/master/demo4.gif)
+
+See the example code below
+```sh
+menuPage.maxMenuItemNumberOnScreen = 3
+```
+
 #### The Other Settings
 **Change the menu bar height, default is 50**
 ```sh
@@ -157,6 +165,10 @@ Tip: set this up before you set menuPage.menuPages will let you be able to track
 **Disable pages view bounce**
 ```sh
 menuPage.setPagesBounce(false)
+```
+**Change the Menu Expand Indicator color**
+```sh
+menuPage.menuBarExpandIndicatorColor = .red
 ```
 
 License
