@@ -15,18 +15,12 @@ class MenuCellView: BasicCollectionViewCell {
         didSet {
             item.translatesAutoresizingMaskIntoConstraints = false
             setupItemView()
-            updateItem()
+            updateUI()
         }
     }
     
     var selectedColor: UIColor!
     var notSelectedColor: UIColor!
-    
-    override var isSelected: Bool {
-        didSet {
-            updateItem()
-        }
-    }
     
     private func setupItemView() {
         subviews.forEach { $0.removeFromSuperview() }  //this is needed because of reusable cells
@@ -37,7 +31,7 @@ class MenuCellView: BasicCollectionViewCell {
         item.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: 0).isActive = true
     }
     
-    private func updateItem() {
+     func updateUI() {
         if let imageView = item as? UIImageView {
             imageView.image = imageView.image?.withRenderingMode(.alwaysTemplate)
             imageView.contentMode = .scaleAspectFit

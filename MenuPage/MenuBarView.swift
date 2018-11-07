@@ -15,16 +15,33 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     private let heightOfHorizontalBar: CGFloat = 4
     private let padding: CGFloat = 4
     
-    internal var menuPageView: MenuPageView?
+    var maxNumberOfItemOnScreen = 3 {
+        didSet {
+            if oldValue != maxNumberOfItemOnScreen {
+                reset()
+            }
+        }
+    }
+    
+    private var currentIndex = IndexPath(item: 0, section: 0) {
+        didSet {
+            selectMenuItemAt(currentIndex)
+            updateSelectedCellX()
+            updateMenuCellUI(oldValue)
+            updateMenuCellUI(currentIndex)
+            menuPageView?.scrollToMenuIndex(currentIndex)
+            menuPageView?.currentIndexDidChange?(currentIndex)
+        }
+    }
+    
+    var menuPageView: MenuPageView?
     //default colors
     var selectedColor: UIColor = .red {
         didSet {
             menuBarCollectionView.visibleCells.forEach { (cell) in
                 if let menuCell = cell as? MenuCellView {
                     menuCell.selectedColor = selectedColor
-                    if menuCell.isSelected {
-                        menuCell.isSelected = true  //trigger update cell UI
-                    }
+                    menuCell.updateUI()
                 }
             }
         }
@@ -35,9 +52,7 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
             menuBarCollectionView.visibleCells.forEach { (cell) in
                 if let menuCell = cell as? MenuCellView {
                     menuCell.notSelectedColor = notSelectedColor
-                    if !menuCell.isSelected {
-                        menuCell.isSelected = false //trigger update cell UI
-                    }
+                    menuCell.updateUI()
                 }
             }
         }
@@ -49,36 +64,92 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
         }
     }
     
-    var menuItems = [UIView]() {
+    var expandIndicatorColor: UIColor = .black {
         didSet {
-            menuBarCollectionView.reloadData()
-            selectMenuItemAt(0)
-            updateHorizontalBarWidth()
+            leadingExpandView.setTitleColor(expandIndicatorColor, for: .normal)
+            trailingExpandView.setTitleColor(expandIndicatorColor, for: .normal)
         }
     }
     
-     private lazy var menuBarCollectionView: UICollectionView = {
+    var menuItems = [UIView]() {
+        didSet {
+            currentIndex = IndexPath(item: 0, section: 0)
+            reset()
+        }
+    }
+    
+    //x value of selected Cell in the collection view
+    private var selectedCellX: CGFloat = 0 {
+        didSet {
+            if oldValue != selectedCellX {
+                setHorizontalBarLeadingAnchorConstraintWithAnimation()
+            }
+        }
+    }
+    
+    //x value of scrill view contentOffset
+    private var scrollViewContentOffsetX: CGFloat = 0 {
+        didSet {
+            if oldValue != scrollViewContentOffsetX {
+                setHorizontalBarLeadingAnchorConstraint()
+            }
+        }
+    }
+    
+    private var menuItemWidth: CGFloat {
+        if menuItems.count > maxNumberOfItemOnScreen {
+            return bounds.width / CGFloat(maxNumberOfItemOnScreen)
+        }
+        return (menuItems.count == 0) ? 0 : bounds.width / CGFloat(menuItems.count)
+    }
+    
+    private lazy var menuBarCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumLineSpacing = 0
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.register(MenuCellView.self, forCellWithReuseIdentifier: reuseIdentifier)
         cv.backgroundColor = .clear
+        cv.showsHorizontalScrollIndicator = false
         cv.dataSource = self
         cv.delegate = self
-        cv.translatesAutoresizingMaskIntoConstraints = false
         return cv
     }()
     
     private lazy var horizontalBarView: UIView = {
         let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = horizontalBarColor
         return view
     }()
     
+    private lazy var leadingExpandView: UIButton = {
+        let button = UIButton()
+        button.setTitle("⟨", for: .normal)
+        button.setTitleColor(expandIndicatorColor, for: .normal)
+        button.addTarget(self, action: #selector(leadingExpand), for: .touchUpInside)
+        return button
+        }()
+    
+    private lazy var trailingExpandView: UIButton = {
+        let button = UIButton()
+        button.setTitle("⟩", for: .normal)
+        button.setTitleColor(expandIndicatorColor, for: .normal)
+        button.addTarget(self, action: #selector(trailingExpand), for: .touchUpInside)
+        return button
+    }()
+    
+    private var maxIndex = 0
+    private var minIndex = 0
+    
     override var bounds: CGRect {
         didSet {
-            updateHorizontalBarWidth()
             updateMenuBarCollectionViewHeightAndHorizontalBarHeight()
+            updateHorizontalBarWidth()
+            
+            //In order to update UI after device rotation
+            layoutIfNeeded()
+            self.menuBarCollectionView.scrollToItem(at: self.currentIndex, at: [], animated: true)
+            self.updateSelectedCellX()
         }
     }
     
@@ -87,14 +158,17 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     private var horizontalBarViewWidthAnchorConstraint: NSLayoutConstraint?
     private var horizontalBarLeadingAnchorConstraint: NSLayoutConstraint?
     
-    internal override func setupViews() {
+    // MARK: Setup Functions
+    override func setupViews() {
         super.setupViews()
         setupMenuBarCollectionView()
         setupHorizontalBar()
+        setupExpandViews()
     }
     
     private func setupMenuBarCollectionView() {
         addSubview(menuBarCollectionView)
+        menuBarCollectionView.translatesAutoresizingMaskIntoConstraints = false
         menuBarCollectionView.topAnchor.constraint(equalTo: topAnchor, constant: 0).isActive = true
         menuBarCollectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0).isActive = true
         menuBarCollectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0).isActive = true
@@ -104,6 +178,7 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     
      private func setupHorizontalBar() {
         addSubview(horizontalBarView)
+        horizontalBarView.translatesAutoresizingMaskIntoConstraints = false
         horizontalBarView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
         horizontalBarViewHeightAnchorConstrain = horizontalBarView.heightAnchor.constraint(equalToConstant: 0)
         horizontalBarViewHeightAnchorConstrain?.isActive = true
@@ -113,11 +188,36 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
         horizontalBarLeadingAnchorConstraint?.isActive = true
     }
     
-    private func updateHorizontalBarWidth() {
-        let width: CGFloat = (menuItems.count == 0) ? 0 : bounds.width/CGFloat(menuItems.count)
-        horizontalBarViewWidthAnchorConstraint?.constant = width
+    private func setupExpandViews() {
+        addSubview(leadingExpandView)
+        addSubview(trailingExpandView)
+        leadingExpandView.translatesAutoresizingMaskIntoConstraints = false
+        trailingExpandView.translatesAutoresizingMaskIntoConstraints = false
+        leadingExpandView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 5).isActive = true
+        leadingExpandView.topAnchor.constraint(equalTo: topAnchor, constant: 0).isActive = true
+        leadingExpandView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
+        leadingExpandView.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        trailingExpandView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -5).isActive = true
+        trailingExpandView.topAnchor.constraint(equalTo: topAnchor, constant: 0).isActive = true
+        trailingExpandView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
+        trailingExpandView.widthAnchor.constraint(equalToConstant: 10).isActive = true
     }
     
+    // MARK: HorizontalBar Functions
+    private func updateHorizontalBarWidth() {
+        horizontalBarViewWidthAnchorConstraint?.constant = menuItemWidth
+    }
+    
+    private func setHorizontalBarLeadingAnchorConstraint() {
+        horizontalBarLeadingAnchorConstraint?.constant = selectedCellX - scrollViewContentOffsetX
+    }
+    
+    private func setHorizontalBarLeadingAnchorConstraintWithAnimation() {
+        setHorizontalBarLeadingAnchorConstraint()
+        Animation.generalAnimate(animations: { self.layoutIfNeeded() })
+    }
+    
+    // MARK: HorizontalBar And MenuBarCollectionView Functions
     private func updateMenuBarCollectionViewHeightAndHorizontalBarHeight() {
         let height = bounds.height
         if height < 0 {
@@ -136,43 +236,121 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
         menuBarCollectionView.collectionViewLayout.invalidateLayout()  //inorder to update cell's size
     }
     
-    internal func selectMenuItemAt(_ index: Int) {
-        if menuItems.count > 0 && index < menuItems.count {
-            let indexPath = IndexPath(item: index, section: 0)
-            menuBarCollectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
+    // MARK: ExpandView Functions
+    private func updateExpandView() {
+        let indexsOfVisibleItems = menuBarCollectionView.indexPathsForVisibleItems.map { $0.row }
+
+        if let max = indexsOfVisibleItems.max() {
+            maxIndex = max
+            if maxIndex + 1 < menuItems.count {
+                trailingExpandView.isHidden = false
+            } else {
+                trailingExpandView.isHidden = true
+            }
+        }
+        
+        if let min = indexsOfVisibleItems.min() {
+            minIndex = min
+            if minIndex > 0 {
+                leadingExpandView.isHidden = false
+            } else {
+                leadingExpandView.isHidden = true
+            }
         }
     }
-    internal func setHorizontalBarLeadingAnchorConstraint(_ constant: CGFloat) {
-        horizontalBarLeadingAnchorConstraint?.constant = constant
+    
+    @objc private func leadingExpand() {
+        let indexPath = IndexPath(item: minIndex - 1, section: 0)
+        menuBarCollectionView.scrollToItem(at: indexPath, at: [], animated: true)
     }
     
-    // MARK: collectionView
-    internal func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    @objc private func trailingExpand() {
+        let indexPath = IndexPath(item: maxIndex + 1, section: 0)
+        menuBarCollectionView.scrollToItem(at: indexPath, at: [], animated: true)
+    }
+    
+    // MARK: Miscellaneous Functions
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layoutIfNeeded()
+        updateExpandView()
+    }
+    
+    private func updateSelectedCellX() {
+        if let seletedCell = menuBarCollectionView.cellForItem(at: currentIndex) {
+            selectedCellX = seletedCell.frame.origin.x
+        }
+    }
+    
+    func getCurrentIndex() -> IndexPath {
+        return currentIndex
+    }
+    
+    func setCurrentIndex(_ indexPath: IndexPath) {
+        if indexPath.row < menuItems.count {
+            currentIndex = indexPath
+        }
+    }
+    
+    private func selectMenuItemAt(_ indexPath: IndexPath) {
+        if menuItems.count > 0 && indexPath.row < menuItems.count {
+            menuBarCollectionView.scrollToItem(at: indexPath, at: [], animated: true)
+            menuBarCollectionView.selectItem(at: indexPath, animated: true, scrollPosition: [])
+        }
+    }
+    
+    private func reset() {
+        menuBarCollectionView.reloadData()
+        selectMenuItemAt(currentIndex)
+        updateHorizontalBarWidth()
+    }
+    
+    private func updateMenuCellUI(_ indexPath: IndexPath) {
+        if let menuCell = menuBarCollectionView.cellForItem(at: indexPath) as? MenuCellView {
+            menuCell.updateUI()
+        }
+    }
+    
+    // MARK: ScrollView Functions
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        scrollViewContentOffsetX = scrollView.contentOffset.x
+    }
+    
+    // MARK: CollectionView Functions
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return menuItems.count
     }
     
-    internal func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath)
         return cell
     }
     
-    internal func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: collectionView.frame.width / CGFloat(menuItems.count), height: collectionView.frame.height)
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: menuItemWidth, height: collectionView.frame.height)
     }
     
-    internal func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
-    internal func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if let menuCell = cell as? MenuCellView {
+            
             menuCell.selectedColor = selectedColor
             menuCell.notSelectedColor = notSelectedColor
             menuCell.item = menuItems[indexPath.row]
+            
+            //not visible cells cause problems (selectMenuItemAt not working properly), so have to run the code below to update UI
+            if indexPath == currentIndex {
+                menuCell.isSelected = true
+                menuCell.updateUI()
+                selectedCellX = menuCell.frame.origin.x
+            }
         }
     }
     
-    internal func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        menuPageView?.scrollToMenuIndex(indexPath)
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        currentIndex = indexPath
     }
 }
