@@ -15,7 +15,7 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     private let heightOfHorizontalBar: CGFloat = 4
     private let padding: CGFloat = 4
     
-    var maxNumberOfItemOnScreen = 3 {
+    var maxNumberOfItemOnScreen = 5 {
         didSet {
             if oldValue != maxNumberOfItemOnScreen {
                 reset()
@@ -239,7 +239,7 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     // MARK: ExpandView Functions
     private func updateExpandView() {
         let indexsOfVisibleItems = menuBarCollectionView.indexPathsForVisibleItems.map { $0.row }
-
+        
         if let max = indexsOfVisibleItems.max() {
             maxIndex = max
             if maxIndex + 1 < menuItems.count {
