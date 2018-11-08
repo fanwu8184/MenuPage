@@ -127,12 +127,32 @@ func changeMenuBarPosition() {
 }
 ```
 
-#### Set the Max Menu Items You Want To Show In The Screen
+#### Set The Max Menu Items You Want To Show In The Screen
 ![demo4](https://github.com/fanwu8184/MenuPage/blob/master/demo4.gif)
 
 See the example code below
 ```sh
 menuPage.maxMenuItemNumberOnScreen = 3
+```
+
+#### Use CustomMenuItem Protocol To Customize Your Selected Or Unselected Menu Item's Behavior
+See the example code below
+```sh
+class CustomMenuView: BasicView, CustomMenuItem {
+    
+    var isSelected: Bool = false {
+        didSet {
+            backgroundColor = isSelected ? .black : .orange
+        }
+    }
+    
+    override func setupViews() {
+        super.setupViews()
+    }
+}
+
+let customMenuView = CustomMenuView()
+let example = MenuPage(title: "example", menuView: customMenuView, pageView: UIView())
 ```
 
 #### The Other Settings
