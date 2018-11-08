@@ -9,6 +9,10 @@
 import Foundation
 import UIKit
 
+protocol CustomMenuItem {
+    var isSelected: Bool { get set }
+}
+
 class MenuCellView: BasicCollectionViewCell {
     
     var item = UIView() {
@@ -32,7 +36,9 @@ class MenuCellView: BasicCollectionViewCell {
     }
     
      func updateUI() {
-        if let imageView = item as? UIImageView {
+        if var customMenuItem = item as? CustomMenuItem {
+            customMenuItem.isSelected = isSelected
+        } else if let imageView = item as? UIImageView {
             imageView.image = imageView.image?.withRenderingMode(.alwaysTemplate)
             imageView.contentMode = .scaleAspectFit
             imageView.tintColor = isSelected ? selectedColor : notSelectedColor
