@@ -186,9 +186,17 @@ Tip: set this up before you set menuPage.menuPages will let you be able to track
 ```sh
 menuPage.setPagesBounce(false)
 ```
-**Change the Menu Expand Indicator color**
+**Change the menu expand indicator color**
 ```sh
 menuPage.menuBarExpandIndicatorColor = .red
+```
+**Change the horizontal menu bar's height**
+```sh
+menuPage.heightOfHorizontalBarInMenuBar = 0
+```
+**Change the padding between horizontal menu bar and menu bar items**
+```sh
+menuPage.paddingBetweenHorizontalBarAndMenuBarItem = 0
 ```
 
 License
