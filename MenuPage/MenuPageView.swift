@@ -82,6 +82,22 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         }
     }
     
+    var heightOfHorizontalBarInMenuBar: CGFloat! {
+        didSet {
+            if oldValue != heightOfHorizontalBarInMenuBar {
+                menuBarView.heightOfHorizontalBar = heightOfHorizontalBarInMenuBar
+            }
+        }
+    }
+    
+    var paddingBetweenHorizontalBarAndMenuBarItem: CGFloat! {
+        didSet {
+            if oldValue != paddingBetweenHorizontalBarAndMenuBarItem {
+                menuBarView.paddingBetweenHorizontalBarAndMenuBarCollectionView = paddingBetweenHorizontalBarAndMenuBarItem
+            }
+        }
+    }
+    
     var isMenuBarAtTop = true {
         didSet {
             updatePosition(true)
@@ -155,7 +171,7 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         } else {
             pageCollectionViewHeightConstraint?.constant = bounds.height - menuBarHeight
         }
-        //inorder to update cell's size
+        //need to update cell's size
         pageCollectionView.collectionViewLayout.invalidateLayout()
         pageCollectionView.layoutIfNeeded()
     }

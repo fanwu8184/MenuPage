@@ -12,16 +12,6 @@ import UIKit
 class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     
     private let reuseIdentifier = "MenuCell"
-    private let heightOfHorizontalBar: CGFloat = 4
-    private let padding: CGFloat = 4
-    
-    var maxNumberOfItemOnScreen = 5 {
-        didSet {
-            if oldValue != maxNumberOfItemOnScreen {
-                reset()
-            }
-        }
-    }
     
     private var currentIndex = IndexPath(item: 0, section: 0) {
         didSet {
@@ -43,6 +33,25 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
                     menuCell.selectedColor = selectedColor
                     menuCell.updateUI()
                 }
+            }
+        }
+    }
+    
+    var heightOfHorizontalBar: CGFloat = 4 {
+        didSet {
+            updateMenuBarCollectionViewHeightAndHorizontalBarHeight()
+        }
+    }
+    var paddingBetweenHorizontalBarAndMenuBarCollectionView: CGFloat = 4 {
+        didSet {
+            updateMenuBarCollectionViewHeightAndHorizontalBarHeight()
+        }
+    }
+    
+    var maxNumberOfItemOnScreen = 5 {
+        didSet {
+            if oldValue != maxNumberOfItemOnScreen {
+                reset()
             }
         }
     }
@@ -226,14 +235,16 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
         } else  if height <= heightOfHorizontalBar {
             horizontalBarViewHeightAnchorConstrain?.constant = height
             menuBarCollectionViewHeightAnchorConstraint?.constant = 0
-        } else if height <= height - heightOfHorizontalBar - padding {
+        } else if height <= heightOfHorizontalBar + paddingBetweenHorizontalBarAndMenuBarCollectionView {
             horizontalBarViewHeightAnchorConstrain?.constant = heightOfHorizontalBar
             menuBarCollectionViewHeightAnchorConstraint?.constant = 0
         } else {
             horizontalBarViewHeightAnchorConstrain?.constant = heightOfHorizontalBar
-            menuBarCollectionViewHeightAnchorConstraint?.constant = height - heightOfHorizontalBar - padding
+            menuBarCollectionViewHeightAnchorConstraint?.constant = height - heightOfHorizontalBar - paddingBetweenHorizontalBarAndMenuBarCollectionView
         }
-        menuBarCollectionView.collectionViewLayout.invalidateLayout()  //inorder to update cell's size
+        //need to update cell's size
+        menuBarCollectionView.collectionViewLayout.invalidateLayout()
+        menuBarCollectionView.layoutIfNeeded()
     }
     
     // MARK: ExpandView Functions
