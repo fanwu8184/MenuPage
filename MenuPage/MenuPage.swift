@@ -10,9 +10,9 @@ import Foundation
 import UIKit
 
 struct MenuPage {
-    let title: String
-    let menuView: UIView
-    let pageView: UIView
+    var title: String
+    var menuView: UIView
+    var pageView: UIView
     
     init(title: String, menuView: UIView? = nil, pageView: UIView) {
         self.title = title
