@@ -127,12 +127,20 @@ func changeMenuBarPosition() {
 }
 ```
 
-#### Set The Max Menu Items You Want To Show In The Screen
+#### Set The Columns Number for Menu On Screen, default is 5
 ![demo4](https://github.com/fanwu8184/MenuPage/blob/master/demo4.gif)
 
 See the example code below
 ```sh
-menuPage.maxMenuItemNumberOnScreen = 3
+menuPage.columnsOfMenuOnScreen = 3
+```
+
+#### You Can Swipe Out And Swipe Back The Menu
+![demo5](https://github.com/fanwu8184/MenuPage/blob/master/demo5.gif)
+
+You need to set isSwipingOutModeOn to true first.
+```sh
+menuPage.isSwipingOutModeOn = true
 ```
 
 #### Use CustomMenuItem Protocol To Customize Your Selected Or Unselected Menu Item's Behavior
