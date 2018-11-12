@@ -109,6 +109,7 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     }
     
     var isSwipingOutModeOn = false
+    var swipeFactor: CGFloat = 0.5
     private var saveMenuBarHeight: CGFloat = 0
     private var saveHeightOfHorizontalBarInMenuBar: CGFloat = 0
     private var savePaddingBetweenHorizontalBarAndMenuBarItem: CGFloat = 0
@@ -227,7 +228,7 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
             heightOfHorizontalBarInMenuBar = 0
             paddingBetweenHorizontalBarAndMenuBarItem = 0
             menuBarView.isMenuOut = isMenuOut
-            menuBarHeight = frame.height / 2
+            menuBarHeight = frame.height * swipeFactor
         }
     }
     
