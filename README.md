@@ -146,6 +146,10 @@ You need to set isSwipingOutModeOn to true first.
 ```sh
 menuPage.isSwipingOutModeOn = true
 ```
+You also can set swipeFactor up to determine how far you want the menu bar out, default is 0.5
+```sh
+menuPage.swipeFactor = 0.2
+```
 
 #### Use CustomMenuItem Protocol To Customize Your Selected Or Unselected Menu Item's Behavior
 See the example code below
