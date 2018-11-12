@@ -39,17 +39,19 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         return mb
     }()
     
-    var maxMenuItemNumberOnScreen: Int! {
+    var columnsOfMenuOnScreen: Int! {
         didSet {
-            menuBarView.maxNumberOfItemOnScreen = maxMenuItemNumberOnScreen
+            menuBarView.columnsOfMenuOnScreen = columnsOfMenuOnScreen
         }
     }
     
     //The default setting of MenuBar Height is 50
     var menuBarHeight: CGFloat = 50 {
         didSet {
-            menuBarHeightConstraint?.constant = menuBarHeight
-            updatePosition(true)
+            if oldValue != menuBarHeight {
+                updateMenuBarHeight()
+                updatePosition(true)
+            }
         }
     }
     
@@ -83,18 +85,20 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     }
     
     var heightOfHorizontalBarInMenuBar: CGFloat! {
-        didSet {
-            if oldValue != heightOfHorizontalBarInMenuBar {
-                menuBarView.heightOfHorizontalBar = heightOfHorizontalBarInMenuBar
-            }
+        get {
+            return menuBarView.heightOfHorizontalBar
+        }
+        set {
+            menuBarView.heightOfHorizontalBar = newValue
         }
     }
     
     var paddingBetweenHorizontalBarAndMenuBarItem: CGFloat! {
-        didSet {
-            if oldValue != paddingBetweenHorizontalBarAndMenuBarItem {
-                menuBarView.paddingBetweenHorizontalBarAndMenuBarCollectionView = paddingBetweenHorizontalBarAndMenuBarItem
-            }
+        get {
+            return menuBarView.paddingBetweenHorizontalBarAndMenuBarCollectionView
+        }
+        set {
+            menuBarView.paddingBetweenHorizontalBarAndMenuBarCollectionView = newValue
         }
     }
     
@@ -103,6 +107,12 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
             updatePosition(true)
         }
     }
+    
+    var isSwipingOutModeOn = false
+    private var saveMenuBarHeight: CGFloat = 0
+    private var saveHeightOfHorizontalBarInMenuBar: CGFloat = 0
+    private var savePaddingBetweenHorizontalBarAndMenuBarItem: CGFloat = 0
+    private var isMenuOut = false
     
     override var bounds: CGRect {
         didSet {
@@ -141,6 +151,7 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         super.setupViews()
         setupPageCollectionView()
         setupMenuBarView()
+        addSwipeGestureRecognizers()
     }
     
     private func setupMenuBarView(){
@@ -164,9 +175,16 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     }
     
     // MARK: MenuBarView And PageCollectionView Functions
-    private func updatePageCollectionViewHeight() {
+    private func updateMenuBarHeight() {
         if menuBarHeight > bounds.height {
-            menuBarHeight = bounds.height
+            menuBarHeightConstraint?.constant = bounds.height
+        } else {
+            menuBarHeightConstraint?.constant = menuBarHeight
+        }
+    }
+    
+    private func updatePageCollectionViewHeight() {
+        if menuBarHeight >= bounds.height {
             pageCollectionViewHeightConstraint?.constant = 0
         } else {
             pageCollectionViewHeightConstraint?.constant = bounds.height - menuBarHeight
@@ -190,9 +208,63 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         }
     }
     
+    // MARK: Gesture Recognizers' Functions
+    private func addSwipeGestureRecognizers() {
+        let swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeGesture))
+        swipeUp.direction = .up
+        let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeGesture))
+        swipeDown.direction = .down
+        menuBarView.addGestureRecognizer(swipeUp)
+        menuBarView.addGestureRecognizer(swipeDown)
+    }
+    
+    private func pullOut() {
+        if !isMenuOut {
+            isMenuOut = true
+            saveHeightOfHorizontalBarInMenuBar = heightOfHorizontalBarInMenuBar
+            savePaddingBetweenHorizontalBarAndMenuBarItem = paddingBetweenHorizontalBarAndMenuBarItem
+            saveMenuBarHeight = menuBarHeight
+            heightOfHorizontalBarInMenuBar = 0
+            paddingBetweenHorizontalBarAndMenuBarItem = 0
+            menuBarView.isMenuOut = isMenuOut
+            menuBarHeight = frame.height / 2
+        }
+    }
+    
+    private func pullBack() {
+        if isMenuOut {
+            isMenuOut = false
+            heightOfHorizontalBarInMenuBar = saveHeightOfHorizontalBarInMenuBar
+            paddingBetweenHorizontalBarAndMenuBarItem = savePaddingBetweenHorizontalBarAndMenuBarItem
+            menuBarView.isMenuOut = isMenuOut
+            menuBarHeight = saveMenuBarHeight
+        }
+    }
+    
+    @objc private func handleSwipeGesture(gesture: UISwipeGestureRecognizer) -> Void {
+        if isSwipingOutModeOn {
+            if isMenuBarAtTop {
+                if gesture.direction == UISwipeGestureRecognizer.Direction.up {
+                    pullBack()
+                }
+                else if gesture.direction == UISwipeGestureRecognizer.Direction.down {
+                    pullOut()
+                }
+            } else {
+                if gesture.direction == UISwipeGestureRecognizer.Direction.up {
+                    pullOut()
+                }
+                else if gesture.direction == UISwipeGestureRecognizer.Direction.down {
+                    pullBack()
+                }
+            }
+        }
+    }
+    
     // MARK: Miscellaneous Functions
     override func layoutSubviews() {
         super.layoutSubviews()
+        updateMenuBarHeight()
         updatePageCollectionViewHeight()
         scrollToMenuIndex(currentIndex)  //need to update UI after device rotation
     }

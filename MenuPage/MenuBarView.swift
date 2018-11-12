@@ -39,18 +39,22 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     
     var heightOfHorizontalBar: CGFloat = 4 {
         didSet {
-            updateMenuBarCollectionViewHeightAndHorizontalBarHeight()
+            if oldValue != heightOfHorizontalBar {
+                updateMenuBarCollectionViewHeightAndHorizontalBarHeight()
+            }
         }
     }
     var paddingBetweenHorizontalBarAndMenuBarCollectionView: CGFloat = 4 {
         didSet {
-            updateMenuBarCollectionViewHeightAndHorizontalBarHeight()
+            if oldValue != paddingBetweenHorizontalBarAndMenuBarCollectionView {
+                updateMenuBarCollectionViewHeightAndHorizontalBarHeight()
+            }
         }
     }
     
-    var maxNumberOfItemOnScreen = 5 {
+    var columnsOfMenuOnScreen = 5 {
         didSet {
-            if oldValue != maxNumberOfItemOnScreen {
+            if oldValue != columnsOfMenuOnScreen {
                 reset()
             }
         }
@@ -106,8 +110,8 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     }
     
     private var menuItemWidth: CGFloat {
-        if menuItems.count > maxNumberOfItemOnScreen {
-            return bounds.width / CGFloat(maxNumberOfItemOnScreen)
+        if menuItems.count > columnsOfMenuOnScreen {
+            return bounds.width / CGFloat(columnsOfMenuOnScreen)
         }
         return (menuItems.count == 0) ? 0 : bounds.width / CGFloat(menuItems.count)
     }
@@ -149,6 +153,8 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     
     private var maxIndex = 0
     private var minIndex = 0
+    var isMenuOut = false
+    private var saveCellHeight: CGFloat = 0
     
     override var bounds: CGRect {
         didSet {
@@ -338,9 +344,13 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: menuItemWidth, height: collectionView.frame.height)
+        if isMenuOut {
+            return CGSize(width: menuItemWidth, height: saveCellHeight)
+        }
+        saveCellHeight = collectionView.frame.height
+        return CGSize(width: menuItemWidth, height: saveCellHeight)
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
