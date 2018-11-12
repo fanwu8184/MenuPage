@@ -1,5 +1,6 @@
 # Menu Page
-![demo](https://github.com/fanwu8184/MenuPage/blob/master/demo.gif)
+![demo](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo.gif)
+![demo1](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo1.gif)
 
 Menu Page is an easy to use and flexible Menu View for iOS development. What you need to take care are the your menu views and your page views. Menu Page will handle the rest of the logic and functions.
 - Swipe Between Pages
@@ -88,7 +89,7 @@ And done, That is it!
 
 ### Features
 #### Update Your MenuPageView After Setup
-![demo2](https://github.com/fanwu8184/MenuPage/blob/master/demo2.gif)
+![demo2](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo2.gif)
 
 See the example code below
 ```sh
@@ -118,7 +119,7 @@ See the example code below
 ```
 
 #### Set the Menu Bar Position
-![demo3](https://github.com/fanwu8184/MenuPage/blob/master/demo3.gif)
+![demo3](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo3.gif)
 
 See the example code below
 ```sh
@@ -128,7 +129,7 @@ func changeMenuBarPosition() {
 ```
 
 #### Set The Columns Number for Menu On Screen, default is 5
-![demo4](https://github.com/fanwu8184/MenuPage/blob/master/demo4.gif)
+![demo4](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo4.gif)
 
 See the example code below
 ```sh
@@ -136,7 +137,7 @@ menuPage.columnsOfMenuOnScreen = 3
 ```
 
 #### You Can Swipe Out And Swipe Back The Menu
-![demo5](https://github.com/fanwu8184/MenuPage/blob/master/demo5.gif)
+![demo5](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo5.gif)
 
 You need to set isSwipingOutModeOn to true first.
 ```sh
