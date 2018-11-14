@@ -7,7 +7,8 @@
 
 Menu Page is an easy to use and flexible Menu View for iOS development. What you need to take care are the your menu views and your page views. Menu Page will handle the rest of the logic and functions.
 - Swipe Between Pages
-- Change settings Anytime
+- Change Settings Anytime
+- Support Device Rotation
 - Flexible
 - Easy To Use
 
