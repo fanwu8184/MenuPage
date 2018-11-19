@@ -4,6 +4,7 @@
 ![demo1-a](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo1-a.gif)
 ![demo1-b](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo1-b.gif)
 ![demo1-c](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo1-c.gif)
+![demo6](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo6.gif)
 
 Menu Page is an easy to use and flexible Menu View for iOS development. What you need to take care are the your menu views and your page views. Menu Page will handle the rest of the logic and functions.
 - Swipe Between Pages
@@ -150,6 +151,13 @@ menuPage.isSwipingOutModeOn = true
 You also can set swipeFactor up to determine how far you want the menu bar out, default is 0.5
 ```sh
 menuPage.swipeFactor = 0.2
+```
+
+#### Setting Up Menu Indication View
+![demo6](https://github.com/fanwu8184/MenuPage/blob/master/Demos/demo6.gif)
+
+```sh
+menuPage.menuBarIndicationView.backgroundColor = .lightGray
 ```
 
 #### Use CustomMenuItem Protocol To Customize Your Selected Or Unselected Menu Item's Behavior
