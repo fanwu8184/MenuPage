@@ -17,7 +17,6 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
         didSet {
             pageCollectionView.reloadData()
             populateMenuBar()
-            scrollToMenuIndex(IndexPath(item: 0, section: 0))  //need to set it back to origin
         }
     }
     
@@ -114,6 +113,10 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     private var saveHeightOfHorizontalBarInMenuBar: CGFloat = 0
     private var savePaddingBetweenHorizontalBarAndMenuBarItem: CGFloat = 0
     private var isMenuOut = false
+    
+    var menuBarIndicationView: UIView {
+        return menuBarView.indicationView
+    }
     
     override var bounds: CGRect {
         didSet {
@@ -263,11 +266,12 @@ class MenuPageView: BasicView, UICollectionViewDataSource, UICollectionViewDeleg
     }
     
     // MARK: Miscellaneous Functions
+    //The reason update collectionView layout in layoutSubviews not in bounds didSet is because putting in bounds didSet will cause layout error message
     override func layoutSubviews() {
         super.layoutSubviews()
         updateMenuBarHeight()
         updatePageCollectionViewHeight()
-        scrollToMenuIndex(currentIndex)  //need to update UI after device rotation
+        scrollToMenuIndex(currentIndex)  //needed after device rotation
     }
     
     private func populateMenuBar() {

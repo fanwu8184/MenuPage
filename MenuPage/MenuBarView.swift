@@ -94,9 +94,9 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     //x value of selected Cell in the collection view
     private var selectedCellX: CGFloat = 0 {
         didSet {
-            if oldValue != selectedCellX {
-                setHorizontalBarLeadingAnchorConstraintWithAnimation()
-            }
+            setHorizontalBarLeadingAnchorConstraint()
+            updateIndicationViewConstraint()
+            Animation.generalAnimate(animations: { self.layoutIfNeeded() })
         }
     }
     
@@ -105,6 +105,7 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
         didSet {
             if oldValue != scrollViewContentOffsetX {
                 setHorizontalBarLeadingAnchorConstraint()
+                updateIndicationViewConstraint()
             }
         }
     }
@@ -156,6 +157,8 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     var isMenuOut = false
     private var saveCellHeight: CGFloat = 0
     
+    let indicationView = UIView()
+    
     override var bounds: CGRect {
         didSet {
             updateMenuBarCollectionViewHeightAndHorizontalBarHeight()
@@ -173,9 +176,15 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     private var horizontalBarViewWidthAnchorConstraint: NSLayoutConstraint?
     private var horizontalBarLeadingAnchorConstraint: NSLayoutConstraint?
     
+    private var indicationViewLeftConstraint: NSLayoutConstraint?
+    private var indicationViewTopConstraint: NSLayoutConstraint?
+    private var indicationViewHeightConstraint: NSLayoutConstraint?
+    private var indicationViewWidthConstraint: NSLayoutConstraint?
+    
     // MARK: Setup Functions
     override func setupViews() {
         super.setupViews()
+        setupIndicationView()
         setupMenuBarCollectionView()
         setupHorizontalBar()
         setupExpandViews()
@@ -218,6 +227,19 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
         trailingExpandView.widthAnchor.constraint(equalToConstant: 10).isActive = true
     }
     
+    private func setupIndicationView() {
+        addSubview(indicationView)
+        indicationView.translatesAutoresizingMaskIntoConstraints = false
+        indicationViewLeftConstraint = indicationView.leftAnchor.constraint(equalTo: leftAnchor, constant: 0)
+        indicationViewTopConstraint = indicationView.topAnchor.constraint(equalTo: topAnchor, constant: 0)
+        indicationViewHeightConstraint = indicationView.heightAnchor.constraint(equalToConstant: 0)
+        indicationViewWidthConstraint = indicationView.widthAnchor.constraint(equalToConstant: 0)
+        indicationViewLeftConstraint?.isActive = true
+        indicationViewTopConstraint?.isActive = true
+        indicationViewHeightConstraint?.isActive = true
+        indicationViewWidthConstraint?.isActive = true
+    }
+    
     // MARK: HorizontalBar Functions
     private func updateHorizontalBarWidth() {
         horizontalBarViewWidthAnchorConstraint?.constant = menuItemWidth
@@ -225,11 +247,6 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     
     private func setHorizontalBarLeadingAnchorConstraint() {
         horizontalBarLeadingAnchorConstraint?.constant = selectedCellX - scrollViewContentOffsetX
-    }
-    
-    private func setHorizontalBarLeadingAnchorConstraintWithAnimation() {
-        setHorizontalBarLeadingAnchorConstraint()
-        Animation.generalAnimate(animations: { self.layoutIfNeeded() })
     }
     
     // MARK: HorizontalBar And MenuBarCollectionView Functions
@@ -251,6 +268,8 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
         //need to update cell's size
         menuBarCollectionView.collectionViewLayout.invalidateLayout()
         menuBarCollectionView.layoutIfNeeded()
+        layoutIfNeeded()
+        updateIndicationViewConstraint()
     }
     
     // MARK: ExpandView Functions
@@ -284,6 +303,16 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
     @objc private func trailingExpand() {
         let indexPath = IndexPath(item: maxIndex + 1, section: 0)
         menuBarCollectionView.scrollToItem(at: indexPath, at: [], animated: true)
+    }
+    
+    // MARK: IndicationView Constraints Funtions
+    private func updateIndicationViewConstraint() {
+        if let seletedCell = menuBarCollectionView.cellForItem(at: currentIndex) {
+            indicationViewLeftConstraint?.constant = menuBarCollectionView.frame.origin.x + seletedCell.frame.origin.x - scrollViewContentOffsetX
+            indicationViewTopConstraint?.constant = menuBarCollectionView.frame.origin.y + seletedCell.frame.origin.y
+            indicationViewHeightConstraint?.constant = seletedCell.frame.height
+            indicationViewWidthConstraint?.constant = seletedCell.frame.width
+        }
     }
     
     // MARK: Miscellaneous Functions
@@ -320,6 +349,9 @@ class MenuBarView: BasicView, UICollectionViewDataSource, UICollectionViewDelega
         menuBarCollectionView.reloadData()
         selectMenuItemAt(currentIndex)
         updateHorizontalBarWidth()
+        layoutIfNeeded()
+        updateIndicationViewConstraint()
+        Animation.generalAnimate(animations: { self.layoutIfNeeded() })
     }
     
     private func updateMenuCellUI(_ indexPath: IndexPath) {
